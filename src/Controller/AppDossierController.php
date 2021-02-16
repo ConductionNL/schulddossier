@@ -185,7 +185,24 @@ class AppDossierController extends Controller
             $em->persist($dossier);
             $em->flush();
 
-            if (!$form['allegroCheck']->getData()) {
+            $allegroCheck = isset($form['allegroCheck']) ? $form['allegroCheck']->getData() : false;
+
+            $dossierRepository = $em->getRepository(Dossier::class);
+            if (null !== $dossier->getClientBSN() && 0 !== strlen($dossier->getClientBSN())) {
+                $dossiers = $dossierRepository->findBy(['clientBSN' => $dossier->getClientBSN(), 'schuldhulpbureau' => $dossier->getSchuldhulpbureau()]);
+                if (count($dossiers) > 1) {
+                    $this->addFlash('success', sprintf('Info: Er bestaat al een ander dossier met deze BSN binnen %s', $dossier->getSchuldhulpbureau()->getNaam()));
+                }
+            }
+
+            if (null !== $dossier->getRegasNummer() && 0 !== strlen($dossier->getRegasNummer())) {
+                $dossiers = $dossierRepository->findBy(['regasNummer' => $dossier->getRegasNummer(), 'schuldhulpbureau' => $dossier->getSchuldhulpbureau()]);
+                if (count($dossiers) > 1) {
+                    $this->addFlash('success', sprintf('Info: Er bestaat al een ander dossier met dit Regas nummer binnen %s', $dossier->getSchuldhulpbureau()->getNaam()));
+                }
+            }
+
+            if (!$allegroCheck) {
                 $this->addFlash('success', 'Dossier aangemaakt');
             } else {
                 if (null !== $allegroService->getSRVAanvraagHeader($dossier->getSchuldhulpbureau(), $dossier->getAllegroNummer())) {
@@ -525,9 +542,10 @@ class AppDossierController extends Controller
                 'name' => [
                     'dossier_status_gewijzigd',
                     'dossier_gewijzigd',
+                    'dossier_send_to_allegro'
                 ],
                 'dossier' => $dossier
-            ], ['datumTijd' => 'DESC'], 30);
+            ], ['datumTijd' => 'DESC'], 30, $request->query->getInt('offset'));
 
         return $this->render('Dossier/detailLogboek.html.twig', ['logs' => $logs, 'dossier' => $dossier]);
     }
@@ -1143,6 +1161,8 @@ class AppDossierController extends Controller
 
         $sheet->getStyleByColumnAndRow(1, 1, 8, 1)->getFont()->setBold(true);
 
+        $rowIndex = 0;
+
         foreach (array_values($dossier->getSchuldItemsNotInPrullenbak()->toArray()) as $rowIndex => $schuldItem) {
             /** @var $schuldItem SchuldItem */
             $rowIndex = $rowIndex + 2; // one-based instead of zero-based and one for the header
@@ -1178,6 +1198,11 @@ class AppDossierController extends Controller
         $sheet->setCellValueByColumnAndRow(3, $rowIndex, $dossier->getSumSchuldItemsNotInPrullenbak());
         $sheet->getStyleByColumnAndRow(3, $rowIndex)->getNumberFormat()->setFormatCode('"€"#,##0.00_-');
 
+        $rowIndex = $rowIndex+4;
+
+        $sheet->setCellValueByColumnAndRow(1, $rowIndex, 'Naam:');
+        $sheet->setCellValueByColumnAndRow(4, $rowIndex, 'Datum:');
+        $sheet->setCellValueByColumnAndRow(6, $rowIndex, 'Handtekening:');
 
         $sheet->getColumnDimensionByColumn(1)->setAutoSize(true);
         $sheet->getColumnDimensionByColumn(2)->setAutoSize(true);

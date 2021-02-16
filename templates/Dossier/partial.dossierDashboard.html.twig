@@ -84,7 +84,7 @@
                     <a href="#id_voorlegger-legitimatie" class="a__editable">
                         <dl class="dl__horizontal">
                             <dt>Burgelijke staat</dt>
-                            <dd>{% if dossier.clientBurgelijkeStaat %}{{ dossier.clientBurgelijkeStaat }}{% else %}-{% endif %}</dd>
+                            <dd>{% if dossier.clientBurgelijkeStaat %}{{ dossier.clientBurgelijkeStaat }}{% if dossier.clientBurgelijkeStaatSinds %} ({{ dossier.clientBurgelijkeStaatSinds|date('d-m-Y') }}){% endif %}{% else %}-{% endif %}</dd>
                             <dt>Geboortedatum inwonende kind(eren)</dt>
                             <dd>
                             {% if dossier.clientKinderen %}{{ dossier.clientKinderen|length }} kinderen:<br>
@@ -107,14 +107,14 @@
             <a href="{{ path('gemeenteamsterdam_fixxxschuldhulp_appdossier_detailalgemeen', {'dossierId': dossier.id}) }}" class="a__editable">
                 <div class="row">
                     <div class="col-1-2">
-                        <h4>MaDi</h4>
+                        <h4>MaDi/Bewindvoerder</h4>
                         <dl>
                             <dt>Schuldhulpbureau</dt>
                             <dd>{{ dossier.schuldhulpbureau }}</dd>
                             <dt>Medewerker schuldhulpbureau</dt>
                             <dd>{{ dossier.medewerkerSchuldhulpbureau }}</dd>
                             <dd>{{ dossier.medewerkerSchuldhulpbureau.telefoonnummer }}</dd>
-                            <dt>MaDi dossiernr.</dt>
+                            <dt>MaDi/Bewindvoerder dossiernr.</dt>
                             <dd>{{ dossier.regasNummer }}</dd>
                         </dl>
                     </div>
@@ -164,12 +164,22 @@
                     Extra status: <strong>{% if dossier.allegroExtraStatus is empty %}n.v.t.{% else %}{{ dossier.allegroExtraStatus }}{% endif %}</strong>
                 </div>
             </div>
+            {% if  is_granted('ROLE_ADMIN') or is_granted('ROLE_GKA') or is_granted('ROLE_GKA_APPBEHEERDER') %}
+                <div class="row">
+                    <div class="col-1-1">
+                        Dossier geexporteerd naar Allegro: <strong>{% if dossier.sendToAllegro is null %}nooit{% else %}{{ dossier.sendToAllegro|date('d-m-Y H:i:s') }}{% endif %}</strong>
+                    </div>
+                </div>
+            {% endif %}
             <div class="row row-max-height">
                 <div class="col-1-1">
                     <a href="{{ path('gemeenteamsterdam_fixxxschuldhulp_appdossier_allegrorefresh', {'dossierId': dossier.id}) }}"
                        class="button secondary">Vernieuwen <i class="icon-reload"></i></a>
                     <a href="{{ path('gemeenteamsterdam_fixxxschuldhulp_allegro_allegrosrveisers', {'dossierId': dossier.id}) }}"
                        class="button secondary">Uitgebreide status</a>
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_GKA') or is_granted('ROLE_GKA_APPBEHEERDER') %}
+                        <a id="send_to_allegro" class="button {% if dossier.sendToAllegro is null %}secondary{% else %}grey{% endif %}">Exporteren</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -199,3 +209,5 @@
 
     </div>
 </div>
+<input type="hidden" id="allegro_validate_url" value="{{ path('gemeenteamsterdam_fixxxschuldhulp_allegro_validatesendtoallegro',{'dossierId': dossier.id}) }}">
+<input type="hidden" id="allegro_send_url" value="{{ path('gemeenteamsterdam_fixxxschuldhulp_allegro_send',{'dossierId': dossier.id}) }}">

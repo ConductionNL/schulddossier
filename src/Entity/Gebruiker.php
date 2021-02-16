@@ -15,7 +15,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * @ORM\Entity(repositoryClass="GemeenteAmsterdam\FixxxSchuldhulp\Repository\GebruikerRepository")
  * @ORM\Table(
  *  uniqueConstraints={
- *      @ORM\UniqueConstraint(name="uq_username", columns={"username"})
+ *      @ORM\UniqueConstraint(name="uq_username", columns={"username"}),
+ *      @ORM\UniqueConstraint(name="uq_email", columns={"email"})
  *  }
  * )
  */
@@ -69,7 +70,7 @@ class Gebruiker implements UserInterface, \Serializable, AdvancedUserInterface, 
      * @var string
      * @ORM\Column(type="string", length=100, nullable=false)
      * @Assert\NotBlank
-     * @Assert\Choice(callback="getTypes")
+     * @Assert\Choice(callback="getTypesList")
      */
     private $type;
 
@@ -89,6 +90,12 @@ class Gebruiker implements UserInterface, \Serializable, AdvancedUserInterface, 
      * @Assert\Length(min=1, max=255)
      */
     private $email;
+
+    /**
+     * @var \DateTime|null
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $lastLogin;
 
     /**
      * @var string
@@ -395,6 +402,11 @@ class Gebruiker implements UserInterface, \Serializable, AdvancedUserInterface, 
         }
         return $defaultTypes;
     }
+    
+    public static function getTypesList()
+    {
+        return [self::TYPE_MADI, self::TYPE_MADI_KEYUSER, self::TYPE_GKA, self::TYPE_GKA_APPBEHEERDER, self::TYPE_ADMIN, self::TYPE_ONBEKEND];
+    }
 
     /**
      * @param Schuldhulpbureau $schuldhulpbureau
@@ -559,5 +571,24 @@ class Gebruiker implements UserInterface, \Serializable, AdvancedUserInterface, 
     public function isUnknown(): bool
     {
         return $this->getType() === self::TYPE_ONBEKEND;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getLastLogin(): ?\DateTime
+    {
+        return $this->lastLogin;
+    }
+
+    /**
+     * @param \DateTime|null $lastLogin
+     * @return Gebruiker
+     */
+    public function setLastLogin(?\DateTime $lastLogin): Gebruiker
+    {
+        $this->lastLogin = $lastLogin;
+
+        return $this;
     }
 }

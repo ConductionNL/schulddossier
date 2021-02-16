@@ -15,6 +15,7 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
     }
 }
 
+String IMAGE_NAME = "${DOCKER_REGISTRY_NO_PROTOCOL}/fixxx/schuldhulp:${env.BUILD_NUMBER}"
 
 node {
     stage("Checkout") {
@@ -38,27 +39,23 @@ node {
             sh 'echo SOURCE_COMMIT := $commit_id >> .build'
             println commit_id
             echo 'end git version'
-            docker.withRegistry('https://repo.secure.amsterdam.nl','docker-registry') {
-                def image = docker.build("fixxx/schuldhulp:${env.BUILD_NUMBER}", "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} --build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} .")
-                image.push()
-            }
+            def image = docker.build("${IMAGE_NAME}")
+            image.push()
         }
     }
 }
 
 String BRANCH = "${env.BRANCH_NAME}"
 
-if (BRANCH == "develop") {
+if (BRANCH == "master" || BRANCH == "develop") {
 
     node {
         stage('Push acceptance image') {
             tryStep "image tagging", {
-                docker.withRegistry('https://repo.secure.amsterdam.nl','docker-registry') {
-                    def image = docker.image("fixxx/schuldhulp:${env.BUILD_NUMBER}")
-                    image.pull()
-                    image.push("acceptance")
-                    image.push("production")
-               }
+                def image = docker.image("${IMAGE_NAME}")
+                image.pull()
+                image.push("acceptance")  // temporary: we do not want to deploy to, or tag for, ACC now
+                //image.push("production")  // permanent: we never want to tag for PROD here
             }
         }
     }
@@ -67,13 +64,17 @@ if (BRANCH == "develop") {
         stage("Deploy to ACC") {
             tryStep "deployment", {
                 build job: 'Subtask_Openstack_Playbook',
-                        parameters: [
-                                [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
-                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-schuldhulp.yml'],
-                        ]
+                    parameters: [
+                        [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                        [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy.yml'],
+                        [$class: 'StringParameterValue', name: 'PLAYBOOKPARAMS', value: "-e cmdb_id=app_schuldhulp"]
+                    ]
             }
         }
     }
+    
+}
+if (BRANCH == "master") {
 
     stage('Waiting for approval') {
         slackSend channel: '#ci-channel-app', color: 'warning', message: 'schuldhulp is waiting for Production Release - please confirm'
@@ -83,12 +84,10 @@ if (BRANCH == "develop") {
     node {
         stage('Push production image') {
             tryStep "image tagging", {
-                docker.withRegistry('https://repo.secure.amsterdam.nl','docker-registry') {
-                    def image = docker.image("fixxx/schuldhulp:${env.BUILD_NUMBER}")
-                    image.pull()
-                    image.push("production")
-                    image.push("latest")
-                }
+                def image = docker.image("${IMAGE_NAME}")
+                image.pull()
+                image.push("production")
+                //image.push("latest")
             }
         }
     }
@@ -97,10 +96,11 @@ if (BRANCH == "develop") {
         stage("Deploy") {
             tryStep "deployment", {
                 build job: 'Subtask_Openstack_Playbook',
-                        parameters: [
-                                [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
-                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-schuldhulp.yml'],
-                        ]
+                    parameters: [
+                        [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                        [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy.yml'],
+                        [$class: 'StringParameterValue', name: 'PLAYBOOKPARAMS', value: "-e cmdb_id=app_schuldhulp"]
+                    ]
             }
         }
     }

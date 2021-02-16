@@ -67,6 +67,8 @@ class ActionEventSubscriber implements EventSubscriberInterface
         $action = new ActionEventEntity();
         $dateTime = new \DateTime();
 
+        $gebruiker->setLastLogin($dateTime);
+
         $action->setName(ActionEvent::GEBRUIKER_INGELOGD);
         $action->setIp($this->requestStack->getMasterRequest()->getClientIp());
         $action->setDatumTijd($dateTime);
@@ -92,7 +94,7 @@ class ActionEventSubscriber implements EventSubscriberInterface
 
         $dateTime = new \DateTime();
 
-        $action->setName(ActionEvent::DOSSIER_GEWIJZIGD);
+        $action->setName(null === $event->getForceType() ? ActionEvent::DOSSIER_GEWIJZIGD : $event->getForceType());
         $action->setDatumTijd($dateTime);
         $action->setDossier($dossier);
         $action->setIp($this->requestStack->getMasterRequest()->getClientIp());
