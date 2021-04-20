@@ -6,11 +6,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="GemeenteAmsterdam\FixxxSchuldhulp\Repository\DossierDocumentRepository")
  * @ORM\Table()
  */
 class DossierDocument
 {
+    const TYPE_SCHULDENOVERZICHT = 'schuldenoverzicht';
+
     /**
      * @var integer
      * @ORM\Id

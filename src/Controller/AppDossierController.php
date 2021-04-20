@@ -2,6 +2,7 @@
 
 namespace GemeenteAmsterdam\FixxxSchuldhulp\Controller;
 
+use Clegginabox\PDFMerger\PDFMerger;
 use Doctrine\ORM\EntityManagerInterface;
 use GemeenteAmsterdam\FixxxSchuldhulp\Entity\Aantekening;
 use GemeenteAmsterdam\FixxxSchuldhulp\Entity\ActionEvent as ActionEventEntity;
@@ -27,6 +28,7 @@ use GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SchuldenFormType;
 use GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SchuldItemFormType;
 use GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SearchDossierFormType;
 use GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\VoorleggerFormType;
+use GemeenteAmsterdam\FixxxSchuldhulp\Repository\DossierDocumentRepository;
 use GemeenteAmsterdam\FixxxSchuldhulp\Repository\DossierRepository;
 use GemeenteAmsterdam\FixxxSchuldhulp\Service\AllegroService;
 use GemeenteAmsterdam\FixxxSchuldhulp\Service\FileStorageSelector;
@@ -37,6 +39,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
+use setasign\Fpdi\PdfParser\PdfParser;
+use setasign\Fpdi\PdfParser\StreamReader;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -49,6 +53,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Validator\Constraints\Valid;
@@ -579,7 +584,7 @@ class AppDossierController extends Controller
                             $dossierDocument = new DossierDocument();
                             $dossierDocument->setDocument($document);
                             $dossierDocument->setDossier($dossier);
-                            $dossierDocument->setOnderwerp('schuldenoverzicht');
+                            $dossierDocument->setOnderwerp(DossierDocument::TYPE_SCHULDENOVERZICHT);
                             $dossierDocument->setSchuldItem($child->getData());
                         }
                     }
@@ -1131,6 +1136,113 @@ class AppDossierController extends Controller
         $response->headers->set('Content-length', filesize($zipfileLocation));
 
         $filesystem->remove($filesystemFiles);
+
+        return $response;
+    }
+
+    /**
+     * @Route("/detail/{dossierId}/download_pdf_aanvraag")
+     * @Method("GET")
+     * @Security("is_granted('access', dossier)")
+     * @ParamConverter("dossier", options={"id"="dossierId"})
+     * @param Dossier             $dossier
+     *
+     * @param FileStorageSelector $fileStorageSelector
+     *
+     * @return Response
+     */
+    public function downloadPdfAanvraag(Dossier $dossier, FileStorageSelector $fileStorageSelector, EntityManagerInterface $em): Response
+    {
+        /** @var $repository DossierDocumentRepository */
+        $repository = $em->getRepository(DossierDocument::class);
+        $dossierDocuments = $repository->fetchAanvraagDossierDocumentsForDossier($dossier);
+
+        return $this->downloadPdfs($dossierDocuments, $fileStorageSelector);
+    }
+
+    /**
+     * @Route("/detail/{dossierId}/download_pdf_schulden")
+     * @Method("GET")
+     * @Security("is_granted('access', dossier)")
+     * @ParamConverter("dossier", options={"id"="dossierId"})
+     * @param Dossier             $dossier
+     *
+     * @param FileStorageSelector $fileStorageSelector
+     *
+     * @return Response
+     */
+    public function downloadPdfSchulden(Dossier $dossier, FileStorageSelector $fileStorageSelector, EntityManagerInterface $em): Response
+    {
+        /** @var $repository DossierDocumentRepository */
+        $repository = $em->getRepository(DossierDocument::class);
+        $dossierDocuments = $repository->fetchSchuldDossierDocumentsForDossier($dossier);
+
+        return $this->downloadPdfs($dossierDocuments, $fileStorageSelector);
+    }
+
+
+    /**
+     * @param DossierDocument[] $dossierDocuments
+     * @return Response
+     */
+    public function downloadPdfs($dossierDocuments, FileStorageSelector $fileStorageSelector): Response {
+
+        $flysystem = $fileStorageSelector->getFileStorageForDossier();
+
+        $pdf = new PDFMerger();
+
+        $merged = [];
+        $failed = 0;
+
+        $tmpDir = sys_get_temp_dir();
+
+        foreach ($dossierDocuments as $dossierDocument) {
+            $path = tempnam($tmpDir, 'merge_pdf_');
+            try {
+                $document = $dossierDocument->getDocument();
+                file_put_contents($path, $flysystem->read($document->getDirectory() . '/' . $document->getBestandsnaam()));
+                if ('application/pdf' !== mime_content_type($path)) {
+                    throw new \Exception('not a pdf');
+                }
+                /**
+                 * We can't merge password protected or sigend pdf documents
+                 */
+                $testPasswordProtection = new PdfParser(StreamReader::createByFile($path));
+                $testPasswordProtection->getCatalog();
+                unset($testPasswordProtection);
+                $pdf->addPDF($path, 'all');
+                $merged[] = $path;
+            } catch (\Exception $e) {
+                $failed++;
+                unlink($path);
+            }
+        }
+
+        if (isset($testPasswordProtection)) {
+            unset($testPasswordProtection);
+        }
+
+        if (0 === count($merged)) {
+            $this->addFlash('error', 'Geen PDF bestanden gevonden.');
+            return $this->redirectToRoute('gemeenteamsterdam_fixxxschuldhulp_appdossier_index');
+        }
+
+        $response = new StreamedResponse(function() use ($pdf, $merged) {
+            try {
+                $pdf->merge('download');
+            } catch (\Exception $e) {
+                // We want to delete the temp files even if there is an exception
+            }
+            foreach ($merged as $path) {
+                unlink($path);
+            }
+
+            if (isset($e)) {
+                throw $e;
+            }
+        });
+
+        $response->headers->set('Content-Type', 'application/pdf');
 
         return $response;
     }
