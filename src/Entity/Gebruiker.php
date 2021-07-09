@@ -338,7 +338,7 @@ class Gebruiker implements UserInterface, \Serializable, AdvancedUserInterface, 
      */
     public function __toString()
     {
-        return $this->naam . ' (' . $this->username . ')';
+        return $this->naam . ' (' . $this->email . ')';
     }
 
     /**
