@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: schuldhulp
       POSTGRES_DB: schuldhulp
   web:
+    image: ${CONTAINER_REGISTRY_BASE}/${APP_NAME}-web:${APP_ENV}
     build:
         context: .
         dockerfile: Dockerfile
