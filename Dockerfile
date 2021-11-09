@@ -41,5 +41,6 @@ RUN composer install --prefer-dist --no-progress --no-suggest --no-scripts
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
 RUN chmod +x /srv/app/docker-entrypoint.sh
+RUN chmod +x bin/console
 
 ENTRYPOINT /srv/app/docker-entrypoint.sh
