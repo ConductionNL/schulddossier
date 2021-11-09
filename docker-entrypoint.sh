@@ -13,7 +13,7 @@ echo "10.204.22.39 schuldhulp.sociaal.amsterdam.nl" >> /etc/hosts
 echo 'Dumping hosts file:'
 cat /etc/hosts
 
-composer run-script post-install-cmd
+#composer run-script post-install-cmd
 
 composer install --prefer-dist --no-progress --no-suggest --no-interaction
 
