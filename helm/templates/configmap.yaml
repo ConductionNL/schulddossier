@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  env: {{ .Values.config.env | quote }}
+  secret: {{ .Values.config.secret | quote }}
+  databaseUrl: {{ .Values.config.databaseUrl | quote }}
+  mailerDns: {{ .Values.config.mailerDns | quote }}
+  swiftAuthUrl: {{ .Values.config.swift.authUrl | quote }}
+  swiftRegion: {{ .Values.config.swift.region | quote }}
+  swiftUserName: {{ .Values.config.swift.userName | quote }}
+  swiftDomainId: {{ .Values.config.swift.userDomainId | quote }}
+  swiftUserPassword: {{ .Values.config.swift.userPassword | quote }}
+  swiftProjectId: {{ .Values.config.swift.projectId | quote }}
+  swiftContainerPrefix: {{ .Values.config.swift.containerPrefix | quote }}
+  swiftTempUrlKey: {{ .Values.config.swift.tempUrlKey | quote }}
+  swiftExternalDomain: {{ .Values.config.swift.externalDomain | quote }}
+  appNotificatieFrom: {{ .Values.config.appNotificatieFrom | quote }}
+  thumbnailServiceUrl: {{ .Values.config.thumbnailServiceUrl | quote }}
+  iamUrl: {{ .Values.config.iam.url | quote }}
+  iamLogoutUrl: {{ .Values.config.iam.logoutUrl | quote }}
+  iamClientId: {{ .Values.config.iam.clientId | quote }}
+  iamClientSecret: {{ .Values.config.iam.clientSecret | quote }}
+  allegroEndpoint: {{ .Values.config.allegroEndpoint | quote }}
+  allegroOnbekendeSchuldeiser: {{ .Values.config.allegroOnbekendeSchuldeiser | quote }}
+

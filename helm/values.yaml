@@ -1,0 +1,136 @@
+# Default values for api.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+config:
+  image: ghcr.io/conductionnl/schulddossier-web
+  tag: dev
+  replicaCount: 2
+  pullPolicy: Always
+  env: dev
+  secret: secret
+  databaseUrl: "pgsql://schuldhulp:insecure@database_dev:5432/schuldhulp"
+  mailerDns: ""
+  allegroEndpoint: "https://schuldhulp-ft.sociaal.amsterdam.nl:8084/SOAP"
+  allegroOnbekendeSchuldeiser: 2450232
+  swift:
+    authUrl: ""
+    region: ""
+    userName: ""
+    userDomainId: ""
+    userPassword: ""
+    projectId: ""
+    containerPrefix: ""
+    tempUrlKey: ""
+    externalDomain: ""
+  appNotificatieFrom: "tester@test.com"
+  thumbnailServiceUrl: "https://thumbnail.service/"
+  iam:
+    url: "https://acc.iam.amsterdam.nl/auth/realms/schulddossier"
+    logoutUrl: "https://acc.iam.amsterdam.nl/auth/realms/schulddossier/protocol/openid-connect/logout"
+    clientId: "schulddossier"
+    clientSecret: "xxxx"
+
+mariadb:
+  enabled: true
+  auth:
+    rootPassword: root
+    database: keycloak
+    username: "example"
+    password: "!ChangeMe!"
+  image:
+    pullPolicy: IfNotPresent
+
+keycloak:
+  enabled: true
+  image:
+    # The Keycloak image repository
+    repository: quay.io/keycloak/keycloak
+    # Overrides the Keycloak image tag whose default is the chart version
+    tag: latest
+    # The Keycloak image pull policy
+    pullPolicy: IfNotPresent
+  ingress:
+    # If `true`, an Ingress is created
+    enabled: false
+    # The name of the Ingress Class associated with this ingress
+    ingressClassName: ""
+    # The Service port targeted by the Ingress
+    servicePort: http
+    # Ingress annotations
+    annotations: { }
+      ## Resolve HTTP 502 error using ingress-nginx:
+    ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
+    # nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+
+    # Additional Ingress labels
+    labels: { }
+    # List of rules for the Ingress
+    rules:
+      - # Ingress host
+        host: '{{ .Release.Name }}.keycloak.example.com'
+        # Paths for the host
+        paths:
+          - path: /
+            pathType: Prefix
+    # TLS configuration
+    tls:
+      - hosts:
+          - keycloak.example.com
+        secretName: ""
+
+    # ingress for console only (/auth/admin)
+    console:
+      # If `true`, an Ingress is created for console path only
+      enabled: false
+      # The name of Ingress Class associated with the console ingress only
+      ingressClassName: ""
+      # Ingress annotations for console ingress only
+      # Useful to set nginx.ingress.kubernetes.io/whitelist-source-range particularly
+      annotations: { }
+      rules:
+        - # Ingress host
+          host: 'hostname.keycloak.example.com'
+          # Paths for the host
+          paths:
+            - path: /auth/admin/
+              pathType: Prefix
+
+postgresql:
+  enabled: true
+  imageTag: 10-alpine
+  # If bringing your own PostgreSQL, the full uri to use
+  url: "psql://a:b@example.com/c"
+  postgresqlUsername: "example"
+  postgresqlPassword: "!ChangeMe!"
+  postgresqlDatabase: "api"
+  # Persistent Volume Storage configuration.
+  # ref: https://kubernetes.io/docs/user-guide/persistent-volumes
+  persistence:
+    enabled: true
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: false
+  hostname: .local
+  path: /
+  annotations:
+    # kubernetes.io/ingress.global-static-ip-name: chart-ip
+    # kubernetes.io/ingress.class: gce
+    # kubernetes.io/tls-acme: "true"
+  tls:
+    # Secrets must be manually created in the namespace, you can also use cert-manager.
+    # - hosts:
+    # - example.com
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
