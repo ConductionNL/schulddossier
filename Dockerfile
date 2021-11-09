@@ -40,4 +40,6 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 RUN composer install --prefer-dist --no-progress --no-suggest --no-scripts
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
+RUN chmod +x /usr/local/bin/docker-entrypoint
+
 ENTRYPOINT /srv/app/docker-entrypoint.sh
