@@ -5,7 +5,7 @@ entries:
       category: DeveloperTools
     apiVersion: v2
     appVersion: 15.0.2
-    created: "2021-11-09T11:42:43.2795501+01:00"
+    created: "2021-11-09T13:33:38.4939306+01:00"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -38,7 +38,7 @@ entries:
       category: Database
     apiVersion: v2
     appVersion: 10.5.12
-    created: "2021-11-09T11:42:43.2825513+01:00"
+    created: "2021-11-09T13:33:38.4979327+01:00"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -71,7 +71,7 @@ entries:
       category: Database
     apiVersion: v2
     appVersion: 11.10.0
-    created: "2021-11-09T11:42:43.2865507+01:00"
+    created: "2021-11-09T13:33:38.5009323+01:00"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -104,7 +104,7 @@ entries:
       artifacthub.io/containsSecurityUpdates: "true"
     apiVersion: v2
     appVersion: V1.0
-    created: "2021-11-09T11:42:43.2735518+01:00"
+    created: "2021-11-09T13:33:38.4869343+01:00"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -118,10 +118,10 @@ entries:
       name: keycloak
       repository: https://charts.bitnami.com/bitnami
       version: 5.1.6
-    digest: b4ab70c226bc06b4c6082a8c67aff26d131ab618e2a0e54af0c9f4d33b517ccd
+    digest: 15ead29b4aec8100ab6fad9e88d37ef9073b355c28979d56eef3089a5d41996f
     home: https://www.conduction.nl
     name: schulddossier
     urls:
     - schulddossier-1.0.0.tgz
     version: 1.0.0
-generated: "2021-11-09T11:42:43.2525514+01:00"
+generated: "2021-11-09T13:33:38.4709321+01:00"

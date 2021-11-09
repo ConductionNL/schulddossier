@@ -29,11 +29,111 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: APP_DEBUG
+            - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
                   name: {{ template "fullname" . }}
-                  key: debug
+                  key: env
+            - name: APP_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: secret
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: databaseUrl
+            - name: SWIFT_AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftAuthUrl
+            - name: SWIFT_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftRegion
+            - name: SWIFT_USER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftUserName
+            - name: SWIFT_USER_DOMAIN_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftDomainId
+            - name: SWIFT_USER_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftUserPassword
+            - name: SWIFT_PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftProjectId
+            - name: SWIFT_CONTAINER_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftContainerPrefix
+            - name: SWIFT_TEMP_URL_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftTempUrlKey
+            - name: SWIFT_EXTERNAL_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: swiftExternalDomain
+            - name: APP_NOTIFICATIE_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: appNotificatieFrom
+            - name: THUMBNAILSERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: thumbnailServiceUrl
+            - name: IAM_LOGOUT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: iamLogoutUrl
+            - name: IAM_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: iamClientId
+            - name: IAM_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: iamClientSecret
+            - name: IAM_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: iamUrl
+            - name: ALLEGRO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: allegroEndpoint
+            - name: ALLEGRO_ONBEKENDE_SCHULDEISER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: allegroOnbekendeSchuldeiser
+            - name: MAILER_DNS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "fullname" . }}
+                  key: mailerDns
           resources:
   {{ toYaml .Values.resources | indent 12 }}
   {{- if .Values.nodeSelector }}
