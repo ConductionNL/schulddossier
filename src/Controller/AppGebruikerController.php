@@ -34,7 +34,7 @@ class AppGebruikerController extends AbstractController
         $pagination = $paginator->paginate(
             $repository->generatePaginationQueryForUser($this->getUser(), $inactive),
             $request->query->getInt('page', 1),
-            10
+            20
         );
 
         $onbekendeGebruikers = $repository->findAllOnbekendeGebruikers()->getQuery()->getResult();

@@ -103,8 +103,13 @@ class GebruikerRepository extends ServiceEntityRepository
      */
     public function findAllRaw(): QueryBuilder
     {
+        $threeMonthsAgo = new \DateTime();
+        $threeMonthsAgo->modify('-3 months');
+        $threeMonthsAgo->setTime(0,0,0);
         $qb = $this->createQueryBuilder('gebruiker');
-        $qb->orderBy('gebruiker.username', 'ASC');
+        $qb->andWhere('gebruiker.lastLogin >= :threeMonthsAgo');
+        $qb->setParameter('threeMonthsAgo', $threeMonthsAgo);
+        $qb->orderBy('gebruiker.naam', 'ASC');
         return $qb;
     }
 
@@ -151,12 +156,17 @@ class GebruikerRepository extends ServiceEntityRepository
      */
     public function findAllByTypeAndSchuldhulpbureauRaw(array $type, $bureaus): QueryBuilder
     {
+        $threeMonthsAgo = new \DateTime();
+        $threeMonthsAgo->modify('-3 months');
+        $threeMonthsAgo->setTime(0,0,0);
         $qb = $this->createQueryBuilder('gebruiker');
         $qb->andWhere('gebruiker.type IN (:type)');
         $qb->setParameter('type', $type);
 
         $qb->innerJoin('gebruiker.schuldhulpbureaus', 'shb');
         $qb->andWhere('shb.id IN (:shb_ids)');
+        $qb->andWhere('gebruiker.lastLogin >= :threeMonthsAgo');
+        $qb->setParameter('threeMonthsAgo', $threeMonthsAgo);
         $qb->setParameter('shb_ids', $bureaus);
 
         $qb->orderBy('gebruiker.naam', 'ASC');
@@ -169,9 +179,14 @@ class GebruikerRepository extends ServiceEntityRepository
      */
     public function findAllOnbekendeGebruikers(): QueryBuilder
     {
+        $fourWeeksInThePast = new \DateTime();
+        $fourWeeksInThePast->modify('-4 weeks');
+        $fourWeeksInThePast->setTime(0,0,0);
         $qb = $this->createQueryBuilder('gebruiker');
         $qb->andWhere('gebruiker.type = (:type)');
+        $qb->andWhere('gebruiker.lastLogin >= :fourWeeksInThePast');
         $qb->setParameter('type', Gebruiker::TYPE_ONBEKEND);
+        $qb->setParameter('fourWeeksInThePast', $fourWeeksInThePast);
 
         $qb->orderBy('gebruiker.naam', 'ASC');
 
