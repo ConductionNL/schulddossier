@@ -52,17 +52,17 @@ services:
       - APP_DEBUG=1
       - APP_SECRET=secret
       - DATABASE_URL=pgsql://schuldhulp:insecure@database_dev:5432/schuldhulp
-      - SWIFT_AUTH_URL=
+      - SWIFT_AUTH_URL=http://swift:35357/v3
       - SWIFT_REGION=
-      - SWIFT_USER_NAME=
-      - SWIFT_USER_DOMAIN_ID=
-      - SWIFT_USER_PASSWORD=
-      - SWIFT_PROJECT_ID=
-      - SWIFT_CONTAINER_PREFIX=
+      - SWIFT_USER_NAME=schulddossier
+      - SWIFT_USER_DOMAIN_ID=test
+      - SWIFT_USER_PASSWORD=!change/Me!
+      - SWIFT_PROJECT_ID=schulddossier
+      - SWIFT_CONTAINER_PREFIX=schulddossier
       - SWIFT_TEMP_URL_KEY=
       - SWIFT_EXTERNAL_DOMAIN=
       - APP_NOTIFICATIE_FROM=tester@test.com
-      - THUMBNAILSERVICE_URL=https://thumbnail.service/
+      - THUMBNAILSERVICE_URL=http://thumbnail:8081
       - IAM_LOGOUT_URL=http://host.docker.internal:8080/auth/realms/ams/protocol/openid-connect/logout
       - IAM_CLIENT_ID=schuld
       - IAM_CLIENT_SECRET=TmqRJUQ5FBEzjpUxPOcGkGM4wR7OTRwj
@@ -106,6 +106,32 @@ services:
     ports:
       - "8080:8080"
       - "9990:9990"
+
+  thumbnail:
+    image: amsterdam/thumbnailservice
+    environment:
+      - APP_ENV=prod
+      - APP_SECRET=secret
+    ports:
+      - "8081:80"
+  swift:
+    image: jeantil/openstack-swift-keystone-docker:pike
+    volumes:
+      - swift_data:/var/lib/swift
+    environment:
+      - OS_USERNAME=schulddossier
+      - OS_PASSWORD=!change/Me!
+      - OS_PROJECT_NAME=schulddossier
+      - OS_USER_DOMAIN_NAME=Default
+      - OS_AUTH_URL=http://localhost:35357/v3
+      - OS_IDENTITY_API_VERSION=3
+    ports:
+      - "12345:8080"
+      - "35357:35357"
+
+
 volumes:
   mysql_data:
+    driver: local
+  swift_data:
     driver: local

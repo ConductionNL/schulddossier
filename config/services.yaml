@@ -85,16 +85,30 @@ services:
     GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\:
         resource: '../src/Form/Type'
 
-    app.form.type.search:
-        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SearchDossierFormType
-        arguments:
-            - '@security.authorization_checker'
-            - '@security.token_storage'
-
-    app.form.type.create:
+    app.form.type.create.dossier:
         class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\CreateDossierFormType
         arguments:
             - '@GemeenteAmsterdam\FixxxSchuldhulp\Form\Event\TransformMedewerkerSchuldhulpbureau'
+
+    app.form.type.detail.dossier:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\DetailDossierFormType
+        arguments:
+            - '@GemeenteAmsterdam\FixxxSchuldhulp\Form\Event\TransformMedewerkerSchuldhulpbureau'
+
+    app.form.type.dossier.status:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\DossierStatusFormType
+        arguments:
+            - '@security.token_storage'
+
+    app.form.type.change.password:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\GebruikerChangePasswordFormType
+        arguments:
+            - '@security.helper'
+
+    app.form.type.user:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\GebruikerFormType
+        arguments:
+            - '@security.helper'
 
     app.form.type.employeetype:
         class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SchuldhulpbureauMedewerkerType
@@ -102,12 +116,31 @@ services:
             - '@security.token_storage'
             - '@doctrine.orm.entity_manager'
 
-    app.form.type.change_status:
-        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\ChangeDossierStatusType
+    app.form.type.item:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SchuldItemFormType
+        arguments:
+            - '@doctrine.orm.entity_manager'
+            - '@monolog.logger'
+
+    app.form.type.search:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\SearchDossierFormType
         arguments:
             - '@security.authorization_checker'
             - '@security.token_storage'
-    
+
+    app.form.type.submitter:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\Type\VoorleggerFormType
+        arguments:
+            - '@security.token_storage'
+            - '@workflow.registry'
+            - '@doctrine.orm.entity_manager'
+
+    app.form.type.dossier.change.status:
+        class: GemeenteAmsterdam\FixxxSchuldhulp\Form\ChangeDossierStatusType
+        arguments:
+            - '@security.token_storage'
+            - '@workflow.registry'
+
     # Serializer
     json_serializer:
         class: Symfony\Component\Serializer\Serializer
