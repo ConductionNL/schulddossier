@@ -1,0 +1,12 @@
+#Overrides some swift parameters for development environments
+
+parameters:
+  swift_public_url: 'http://localhost:12345'
+
+#Overrides authentication arguments
+services:
+  openstack:
+    class: OpenStack\OpenStack
+    lazy: true
+    arguments:
+      - { authUrl: '%swift_auth_url%', region: '%swift_region%', user: { name: '%swift_user_name%', domain: { id: '%swift_user_domain_id%' }, password: '%swift_user_password%' }, scope: { project: { name: '%swift_project_id%', domain: { id: '%swift_user_domain_id%' } } } }

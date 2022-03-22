@@ -9,7 +9,6 @@ parameters:
     swift_container_prefix: '%env(SWIFT_CONTAINER_PREFIX)%'
     swift_temp_url_key: '%env(SWIFT_TEMP_URL_KEY)%'
     swift_external_domain: '%env(SWIFT_EXTERNAL_DOMAIN)%'
-    swift_public_url: 'https://%swift_project_id%.%swift_external_domain%'
     thumbnail_service_url: '%env(THUMBNAILSERVICE_URL)%'
     app_mail_from: '%env(APP_NOTIFICATIE_FROM)%'
 
@@ -142,8 +141,7 @@ services:
             - '@workflow.registry'
 
     # Serializer
-    json_serializer:
-        class: Symfony\Component\Serializer\Serializer
+    Symfony\Component\Serializer\Serializer:
         arguments:
             0:
                 - '@GemeenteAmsterdam\FixxxSchuldhulp\Normalizer\DateTimeNormalizer'
@@ -155,16 +153,12 @@ services:
             1:
                 - '@json_encoder'
         public: true
+        tags: ["json_serializer"]
     json_encoder:
         class: Symfony\Component\Serializer\Encoder\JsonEncoder
         public: false
 
     # OpenStack
-    openstack:
-        class: OpenStack\OpenStack
-        lazy: true
-        arguments:
-            - { authUrl: '%swift_auth_url%', region: '%swift_region%', user: { name: '%swift_user_name%', domain: { id: '%swift_user_domain_id%' }, password: '%swift_user_password%' }, scope: { project: { id: '%swift_project_id%' } } }
     openstack_objectstore:
         class: OpenStack\ObjectStore\v1\Service
         lazy: true

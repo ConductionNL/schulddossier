@@ -53,14 +53,14 @@ services:
       - APP_SECRET=secret
       - DATABASE_URL=pgsql://schuldhulp:insecure@database_dev:5432/schuldhulp
       - SWIFT_AUTH_URL=http://swift:35357/v3
-      - SWIFT_REGION=
-      - SWIFT_USER_NAME=schulddossier
-      - SWIFT_USER_DOMAIN_ID=test
-      - SWIFT_USER_PASSWORD=!change/Me!
-      - SWIFT_PROJECT_ID=schulddossier
-      - SWIFT_CONTAINER_PREFIX=schulddossier
-      - SWIFT_TEMP_URL_KEY=
-      - SWIFT_EXTERNAL_DOMAIN=
+      - SWIFT_REGION=RegionOne
+      - SWIFT_USER_NAME=swift
+      - SWIFT_USER_DOMAIN_ID=default
+      - SWIFT_USER_PASSWORD=fingertips
+      - SWIFT_PROJECT_ID=service
+      - SWIFT_CONTAINER_PREFIX=schulddossier_
+      - SWIFT_TEMP_URL_KEY=8h7wE4soRzhrP6XN
+      - SWIFT_EXTERNAL_DOMAIN=localhost:12345/v1/KEY_13ad78f23c82407183e4a79e61a51862
       - APP_NOTIFICATIE_FROM=tester@test.com
       - THUMBNAILSERVICE_URL=http://thumbnail:8081
       - IAM_LOGOUT_URL=http://host.docker.internal:8080/auth/realms/ams/protocol/openid-connect/logout
@@ -114,20 +114,28 @@ services:
       - APP_SECRET=secret
     ports:
       - "8081:80"
+
   swift:
     image: jeantil/openstack-swift-keystone-docker:pike
     volumes:
       - swift_data:/var/lib/swift
+      - ./swift:/swiftinit
+    restart: on-failure
     environment:
-      - OS_USERNAME=schulddossier
-      - OS_PASSWORD=!change/Me!
-      - OS_PROJECT_NAME=schulddossier
+      - OS_USERNAME=swift
+      - OS_PASSWORD=fingertips
+      - OS_PROJECT_NAME=service
       - OS_USER_DOMAIN_NAME=Default
-      - OS_AUTH_URL=http://localhost:35357/v3
+      - OS_PROJECT_DOMAIN_NAME=Default
+      - OS_AUTH_URL=http://127.0.0.1:35357/v3
       - OS_IDENTITY_API_VERSION=3
+      - OS_TENANT_NAME=service
+      - TEMP_URL_KEY=8h7wE4soRzhrP6XN
     ports:
       - "12345:8080"
       - "35357:35357"
+      - "5000:5000"
+    entrypoint: /swiftinit/docker-entrypoint.sh
 
 
 volumes:

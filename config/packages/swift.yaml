@@ -1,0 +1,11 @@
+#Swift parameters in all environments but development
+
+parameters:
+  swift_public_url: 'https://%swift_project_id%.%swift_external_domain%'
+
+services:
+  openstack:
+    class: OpenStack\OpenStack
+    lazy: true
+    arguments:
+      - { authUrl: '%swift_auth_url%', region: '%swift_region%', user: { name: '%swift_user_name%', domain: { id: '%swift_user_domain_id%' }, password: '%swift_user_password%' }, scope: { project: { id: '%swift_project_id%' } } }
